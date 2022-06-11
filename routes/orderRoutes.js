@@ -83,11 +83,11 @@ orderRoute.get('/getOrderHistory', asyncHandler(async(req , res) => {
       var purchacelist=[];
       var total=0;
       
+      console.log("aloooooooooooooooooooo")
       const shipment = await axios.get(getShipmentURL+t[i]._id)
       const shipping = Object.assign(shipment.data)
       for (let j = 0; j < t[i].Items.length; j++) {
 
-        console.log("aloooooooooooooooooooo")
           const price = await axios.get(URLinventory+"price/"+t[i].Items[j].ProductId.toString())
           const detail = await axios.get(URLinventory+"details/"+t[i].Items[j].ProductId.toString())
           const prPrice =Object.assign(price.data)
