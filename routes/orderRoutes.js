@@ -6,25 +6,28 @@ const orderRoute = express.Router();
 const URL = 'http://localhost:8000/api/carts/';
 const URLinventory = 'http://localhost:5000/api/product/';
 const axios = require('axios');
-const stripe =  require('stripe')(process.env.STRIPE_PRIVATE_KEY)
+const stripe =  require('stripe')(process.env.Stripe)
 const order = require('../models/order');
-
-
-
+const homeURL = 'http://localhost:3000/'
+const decQuanURL = 'http://localhost:5000/api/product/quantAfterOrder?productId=' 
+const updateUserEmailURL = 'http://localhost:4000/api/notify/update?orderId='
+const createShipmentURL = 'http://localhost:7000/api/shipping/createShippment/'
+const getShipmentURL = 'http://localhost:7000/api/shipping/'
 
 //Create Order
-orderRoute.post('/createOrder',asyncHandler(async(req,res) =>{
+orderRoute.patch('/createOrder',asyncHandler(async(req,res) =>{
     const cartId= req.query.cartID
-  
+    
     let url = URL+"emptyCart"+"?cartID="+cartId
 
     const items = await axios.delete(url)
-    const {Address:{City,District,StreetName,BuildingNo,Floor,ApartmentNo},PhoneNumber,UserId,Email}=  req.body
+    const {Address:{City,District,StreetName,BuildingNo,Floor,ApartmentNo},PhoneNumber,UserId,Email,AddressLink:{Latitude,Longitiude}}=  req.body
     
-    const order = await Order.create({Items:items.data,Address:{City,District,StreetName,BuildingNo,Floor,ApartmentNo},PhoneNumber:PhoneNumber,UserId:UserId,Email:Email})
-    console.log(order);
+    const order = await Order.create({Items:items.data,Address:{City,District,StreetName,BuildingNo,Floor,ApartmentNo},PhoneNumber:PhoneNumber,AddressLink:{Latitude:Latitude,Longitiude:Longitiude},UserId:UserId,Email:Email})
     const t =Object.assign(items.data)
-    
+    const updateUserEmail = await axios.get(updateUserEmailURL+order._id)
+
+    const shipment = await axios.post(createShipmentURL+order._id)
     var purchacelist=[];
     for (let i = 0; i < t.length; i++) {
         const price = await axios.get(URLinventory+"price/"+t[i].ProductId)
@@ -43,6 +46,8 @@ orderRoute.post('/createOrder',asyncHandler(async(req,res) =>{
             quantity: t[i].Quantity,
           }
         purchacelist.push(ob1)
+        console.log(decQuanURL+t[i].ProductId+'&productQuant=' + t[i].Quantity);
+        const decQuan = await axios.patch(decQuanURL+t[i].ProductId+'&productQuant=' + t[i].Quantity)
       }
 
       try {
@@ -50,8 +55,8 @@ orderRoute.post('/createOrder',asyncHandler(async(req,res) =>{
           payment_method_types: ["card"],
           mode: "payment",
           line_items: purchacelist,
-          success_url: `http://localhost:3000/success.html`,
-          cancel_url: `http://localhost:3000/fail.html`,
+          success_url: homeURL,
+          cancel_url: homeURL,
         })
         res.json({ url: session.url })
       } catch (e) {
@@ -64,12 +69,40 @@ orderRoute.post('/createOrder',asyncHandler(async(req,res) =>{
     }
 ))
 
-orderRoute.get('/getOrderHistory/:id', asyncHandler(async(req , res) => {
-    const userId = req.params.id;
+orderRoute.get('/getOrderHistory', asyncHandler(async(req , res) => {
+  const email = req.query.Email;
 
-    const orders = await order.find({UserId : userId}).then(json => {
-        res.send(json)
-    })
+  const orders = await order.find({Email : email})
+ 
+  const t =Object.assign(orders)
+
+
+  var orderlist=[];
+    for(let i = 0; i < t.length; i++){
+
+      var purchacelist=[];
+      var total=0;
+      
+      const shipment = await axios.get(getShipmentURL+t[i]._id)
+      const shipping = Object.assign(shipment.data)
+      for (let j = 0; j < t[i].Items.length; j++) {
+
+          const price = await axios.get(URLinventory+"price/"+t[i].Items[j].ProductId.toString())
+          const detail = await axios.get(URLinventory+"details/"+t[i].Items[j].ProductId.toString())
+          const prPrice =Object.assign(price.data)
+          const prdetail =Object.assign(detail.data)
+          const obj = {'ProductID':t[i].Items[j].ProductId,'ProductName':prdetail.productName,'Productprice':prPrice.productPrice,'Quantity':t[i].Items[j].Quantity}
+          total += parseInt(prPrice.productPrice)*parseInt(t[i].Items[j].Quantity)
+
+          purchacelist.push(obj)
+
+        }
+
+      const order = {'Address':t[i].Address,'_id':t[i].Items._id,'Items':purchacelist,'PhoneNumber':t[i].PhoneNumber,'UserId':t[i].UserId,'Email':t[i].Email,'OrderId':t[i]._id,'Order_Status':t[i].Status,'Shipment_Status':shipping.Status,'Total':total}
+      orderlist.push(order)
+    }
+
+    res.send(orderlist)
 }))
 
 orderRoute.get('/getOrder/:id', asyncHandler(async(req , res) => {
@@ -93,7 +126,7 @@ orderRoute.patch('/cancelOrder/:id',asyncHandler(async(req,res)=>{
         })
         .catch(err => {
             res.status(500).json({error:'Could not update the document'})
-        })
+        }) 
     }
 }))
 

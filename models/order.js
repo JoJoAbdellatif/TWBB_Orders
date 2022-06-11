@@ -19,6 +19,16 @@ const orderSchema = new mongoose.Schema({
         default:'CREATED',
         required: true
     },
+    AddressLink:{
+        Latitude:{
+            type:String,
+          
+        },
+        Longitiude:{
+            type:String,
+          
+        },
+    },
     Address:{
         City:{
         type:String,
