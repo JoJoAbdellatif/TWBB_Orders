@@ -3,16 +3,16 @@ require("dotenv").config()
 const asyncHandler = require('express-async-handler')
 const Order = require('../models/order')
 const orderRoute = express.Router();
-const URL = 'http://localhost:8000/api/carts/';
-const URLinventory = 'http://localhost:5000/api/product/';
+const URL = 'https://twbb-users.vercel.app/api/carts/';
+const URLinventory = 'https://twbb-inventory.vercel.app/api/product/';
 const axios = require('axios');
 const stripe =  require('stripe')(process.env.Stripe)
 const order = require('../models/order');
 const homeURL = 'http://localhost:3000/'
-const decQuanURL = 'http://localhost:5000/api/product/quantAfterOrder?productId=' 
-const updateUserEmailURL = 'http://localhost:4000/api/notify/update?orderId='
-const createShipmentURL = 'http://localhost:7000/api/shipping/createShippment/'
-const getShipmentURL = 'http://localhost:7000/api/shipping/'
+const decQuanURL = 'https://twbb-inventory.vercel.app/api/product/quantAfterOrder?productId=' 
+const updateUserEmailURL = 'https://twbb-notifications.vercel.app/api/notify/update?orderId='
+const createShipmentURL = 'https://twbb-shipment.vercel.app/api/shipping/createShippment/'
+const getShipmentURL = 'https://twbb-shipment.vercel.app/api/shipping/'
 
 //Create Order
 orderRoute.patch('/createOrder',asyncHandler(async(req,res) =>{
