@@ -8,7 +8,7 @@ const URLinventory = 'https://twbb-inventory.vercel.app/api/product/';
 const axios = require('axios');
 const stripe =  require('stripe')(process.env.Stripe)
 const order = require('../models/order');
-const homeURL = 'http://localhost:3000/'
+const homeURL = 'https://twbb-frontend.vercel.app/'
 const decQuanURL = 'https://twbb-inventory.vercel.app/api/product/quantAfterOrder?productId=' 
 const updateUserEmailURL = 'https://twbb-notifications.vercel.app/api/notify/update?orderId='
 const createShipmentURL = 'https://twbb-shipment.vercel.app/api/shipping/createShippment/'
