@@ -141,7 +141,7 @@ orderRoute.patch('/updateStatus/:id',asyncHandler(async(req,res)=>{
 
   }
   else{
-      shipment.updateOne({id: req.params.id},{$set:updates})
+      order.updateOne({id: req.params.id},{$set:updates})
       .then(result => {
           res.status(200).json(result)
 
