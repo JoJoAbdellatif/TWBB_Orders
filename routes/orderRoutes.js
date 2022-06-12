@@ -51,7 +51,7 @@ orderRoute.patch('/createOrder',asyncHandler(async(req,res) =>{
       }
 
       try {
-        setTimeout(() => {
+
         const session = await stripe.checkout.sessions.create({
           payment_method_types: ["card"],
           mode: "payment",
@@ -59,7 +59,6 @@ orderRoute.patch('/createOrder',asyncHandler(async(req,res) =>{
           success_url: homeURL,
           cancel_url: homeURL,
         })
-      }, 2000)
         res.json({ url: session.url })
       } catch (e) {
         res.status(500).json({ error: e.message })
