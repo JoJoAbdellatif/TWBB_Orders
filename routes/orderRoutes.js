@@ -133,7 +133,7 @@ orderRoute.patch('/cancelOrder/:id',asyncHandler(async(req,res)=>{
 }))
 
 orderRoute.patch('/updateStatus/:id',asyncHandler(async(req,res)=>{
-  const OrderExists = await order.findOne({id: req.params.id})
+  const OrderExists = await order.findOne({_id: req.params.id})
   const updates = req.body;
 
   if(!OrderExists){
@@ -141,9 +141,11 @@ orderRoute.patch('/updateStatus/:id',asyncHandler(async(req,res)=>{
 
   }
   else{
-      order.updateOne({id: req.params.id},{$set:updates})
+      order.updateOne({_id: req.params.id},{$set:updates})
       .then(result => {
-          res.status(200).json(result)
+
+        axios.get(updateUserEmailURL+req.params.id)
+        res.status(200).json(result)
 
       })
       .catch(err => {
